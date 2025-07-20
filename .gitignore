@@ -56,3 +56,6 @@ dkms.conf
 
 TODO.md
 net_client
+build/main.o
+build/net.o
+build/net_client
