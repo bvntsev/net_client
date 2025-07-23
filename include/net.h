@@ -5,4 +5,6 @@
 
 void new_server();
 
+void new_client();
+
 #endif /* NET_H */
