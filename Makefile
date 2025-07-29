@@ -20,8 +20,11 @@ $(BIN_DIR):
 clean:
 	rm -rf $(BIN_DIR) $(BIN)
 
-run: 
-	./$(BIN)
+run_client: 
+	./$(BIN) client
+
+run_server: 
+	./$(BIN) server
 
 run_debug:
 	gdb $(BIN)

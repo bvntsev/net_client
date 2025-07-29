@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude -O0 -ggdb -g3
+CFLAGS = -W -Wall -Wextra -std=c11 -Iinclude -O1 -g3
 
 LDFLAGS =
 

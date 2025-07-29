@@ -15,13 +15,13 @@ int main(int argc,
 
     if (strcmp(argv[1], "server") == 0) {
         printf("Find server arg\n");
-
-
         new_server();
-    } else if (strcmp(argv[1], "client") == 0) {
+    } 
+    else if (strcmp(argv[1], "client") == 0) {
         printf("Find client arg\n");
         new_client();
-    } else {
+    } 
+    else {
         fprintf(stderr, "The incorrect user command.\nUse --help\n");
         exit(EXIT_FAILURE);
     }
