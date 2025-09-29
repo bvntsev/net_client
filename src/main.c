@@ -19,7 +19,7 @@ int main(int argc,
     } 
     else if (strcmp(argv[1], "client") == 0) {
         printf("Find client arg\n");
-        new_client();
+        new_client("Client name #1");
     } 
     else {
         fprintf(stderr, "The incorrect user command.\nUse --help\n");

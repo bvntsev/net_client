@@ -1,5 +1,3 @@
-#include "../include/net.h"
-
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <stdio.h>
@@ -11,30 +9,46 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <netinet/ip.h> 
-#include <errno.h>
 
-#define EXIT_ERROR(ARG)\
-fprintf(stderr, ARG);\
-exit(EXIT_FAILURE);
+#include "../include/net.h"
 
-#define PORT 12312
-#define MAX_LEN 255
 
-void send_package(){
+#define EXIT_ERROR(ARG)                         \
+                        fprintf(stderr, ARG);   \
+                        exit(EXIT_FAILURE);
 
+#define PORT            12312
+#define MAX_LEN         255
+
+
+void send_package(int *arrivalfd, struct package *send_package) {
+    ssize_t bytes_send = send(*arrivalfd, (void *)send_package,
+                        sizeof(*send_package), 0);
+    if (bytes_send == -1) {
+        EXIT_ERROR("The incorrect send_package process\n")
+    }
+    else {
+        printf("The packages was send\n");
+    }
 }
 
-void get_package(){
 
+struct package *get_package(int *sockfd) {
 
+    //   ssize_t recv(size_t size;
+    //                    int sockfd, void buf[size], size_t size,
+    //                    int flags);
+    void *buf = (void *)malloc(sizeof(struct package));
+    if (recv(*sockfd, buf, sizeof(struct package), 0) == -1) {
+        EXIT_ERROR("The incorrect get_package process\n")
+    }
+    else {
+        printf("The package was arrived\n");
+        return (struct package *) buf;
+    }
 }
 
-void parse_package(){
-
-}
-
-
-ssize_t 
+extern ssize_t 
 getline(char **restrict lineptr, size_t *restrict n, FILE *restrict stream);
 
 pthread_t r_thread, w_thread;
@@ -54,7 +68,6 @@ static void *write_message(void *userfd){
         size_t len_response = 0; 
 
         ssize_t bytes_read = getline(&response, &len_response, stdin); 
-        printf("hello world\n");
 
         if (bytes_read == -1) {
             EXIT_ERROR("Error getline\n")
@@ -140,7 +153,7 @@ static void *read_message(void *userfd){
     }
 }
 
-static void *create_communication_pthreads(int *userfd){
+static void *create_communication_pthreads(int *userfd) {
 
     if ( pthread_create
             ( &r_thread, NULL, read_message, (void *)userfd) 
@@ -153,7 +166,7 @@ static void *create_communication_pthreads(int *userfd){
             != 0) {
         EXIT_ERROR("Incorrect create the thread\n")
     }
-
+    
     void *retval = NULL;
     pthread_join(r_thread, NULL);
     pthread_join(w_thread, retval);
@@ -196,12 +209,30 @@ void new_server() {
 	printf("The listen is correct \n");
 	   
 	n_sockfd = accept(sockfd, (struct sockaddr * ) &cli_addr, &c_addrlen);
+
     if (n_sockfd == -1) {
         EXIT_ERROR("SERVER: The problems with accept \n")
     }
 	printf("The accept is correct \n");
 
+    struct server_data * server = (struct server_data *)    
+                                    malloc(sizeof(struct server_data));
+    server->client_amount = 1;
 
+    server->serverfd = n_sockfd;
+    server->clients = (struct client_data **)
+                        malloc(sizeof(struct client_data)*5);
+
+    server->clients[0] = (struct client_data *)get_package(&n_sockfd);
+
+    send_package(&n_sockfd, (void *) server);
+
+    printf("%d\n", server->clients[0]->clientfd);
+
+    printf("my server fd - %d %d \n", sockfd, n_sockfd);
+
+    printf("Clients amount is %hu \n", server->client_amount);
+    printf("The name of client is %s\n", server->clients[server->client_amount-1]->name);
     create_communication_pthreads(&n_sockfd);
 
 
@@ -212,7 +243,8 @@ void new_server() {
 
 }
 
-void new_client() {
+void new_client(char * client_name) {
+
     int clientfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (clientfd == -1) {
@@ -233,9 +265,31 @@ void new_client() {
     if (connect(clientfd, (struct sockaddr *)&serv_addr, s_addrlen) == -1){
         EXIT_ERROR("CLIENT: The problems with connecting\n ")
     }
+    
     printf("The connection is correct\n");
 
-    create_communication_pthreads(&clientfd);
+    printf("my client fd - %d \n", clientfd);
+
+    struct package *sent_pkg = (struct package *)malloc(sizeof(struct package));
+    
+    sent_pkg->type = client_pkg;
+    struct client_data *client = (struct client_data *)
+                                    malloc(sizeof(struct client_data));
+
+    client->clientfd = clientfd;
+    sprintf(client->name, "MY CLIENT NAME");
+    client->type = idle;
+
+    sent_pkg->pkg = (void *)client;
+
+    send_package(&clientfd, sent_pkg);
+
+
+    struct package *server_pkg = get_package(&client->clientfd);
+    client->serverfd = (int *) server_pkg->pkg;
+
+
+    create_communication_pthreads(&client->clientfd);
 
     printf("Session is done\n");
 
