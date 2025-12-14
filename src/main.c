@@ -13,11 +13,16 @@ int main(int argc,
         exit(EXIT_FAILURE);
     }
 
-    if (strcmp(argv[1], "server") == 0) {
+    if (strcmp(argv[1], "--help") == 0) {
+        printf("Available command:\n--server\n--client\n");
+        return (EXIT_SUCCESS);
+    } 
+
+    else if (strcmp(argv[1], "--server") == 0) {
         printf("Find server arg\n");
         new_server();
     } 
-    else if (strcmp(argv[1], "client") == 0) {
+    else if (strcmp(argv[1], "--client") == 0) {
         printf("Find client arg\n");
         new_client("Client name #1");
     } 

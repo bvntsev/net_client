@@ -296,7 +296,4 @@ void new_client(char * client_name) {
     close(clientfd);
 
     return ;
-
-
-	
 }
